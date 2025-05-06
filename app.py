@@ -5,16 +5,23 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 import pickle
 import os
+import gdown
+
 
 # === Load and Prepare Data ===
 
 @st.cache_data
 def load_and_preprocess_data():
     file_id = "1LpVqLHQVmIlAnSqeEcFSK6R1v5P5_WEW"
-    file_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+    output = "flight_data.csv"
 
-    df = pd.read_csv(file_url)
+    if not os.path.exists(output):
+        gdown.download(f"https://drive.google.com/uc?id={file_id}", output, quiet=False)
 
+    df = pd.read_csv(output)
+
+    # your preprocessing logic here...
+    return df
 
     # Create binary target column
     df['Delayed'] = df['Delay'].apply(lambda x: 1 if x > 0 else 0)
