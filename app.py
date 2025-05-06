@@ -7,11 +7,14 @@ import pickle
 import os
 
 # === Load and Prepare Data ===
-file_url = "https://drive.google.com/file/d/1LpVqLHQVmIlAnSqeEcFSK6R1v5P5_WEW/view?usp=drive_link"
 
 @st.cache_data
 def load_and_preprocess_data():
+    file_id = "1LpVqLHQVmIlAnSqeEcFSK6R1v5P5_WEW"
+    file_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+
     df = pd.read_csv(file_url)
+
 
     # Create binary target column
     df['Delayed'] = df['Delay'].apply(lambda x: 1 if x > 0 else 0)
