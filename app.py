@@ -6,22 +6,39 @@ from sklearn.preprocessing import LabelEncoder
 import pickle
 import os
 import gdown
+import requests
+from io import StringIO
 
-
-# === Load and Prepare Data ===
-
-@st.cache_data
 def load_and_preprocess_data():
-    file_id = "1LpVqLHQVmIlAnSqeEcFSK6R1v5P5_WEW"
-    output = "flight_data.csv"
+    try:
+        file_id = "1LpVqLHQVmIlAnSqeEcFSK6R1v5P5_WEW"
+        url = f"https://drive.google.com/uc?id={file_id}"
 
-    if not os.path.exists(output):
-        gdown.download(f"https://drive.google.com/uc?id={file_id}", output, quiet=False)
+        # Use requests to download the file
+        response = requests.get(url)
+        
+        # Check for successful download
+        if response.status_code == 200:
+            # Convert content to StringIO, which is like a file object
+            data = StringIO(response.text)
 
-    df = pd.read_csv(output)
+            # Read into pandas dataframe
+            df = pd.read_csv(data)
 
-    # your preprocessing logic here...
-    return df
+            # DEBUG: Show shape and columns
+            print("CSV Loaded: ", df.shape)
+            print("Columns: ", df.columns)
+            
+            # Your preprocessing steps here...
+            
+            return df, {}
+        else:
+            print(f"Failed to download file, status code: {response.status_code}")
+            return None, None
+        
+    except Exception as e:
+        print("❌ ERROR in load_and_preprocess_data():", e)
+        return None, None
 
     # Create binary target column
     df['Delayed'] = df['Delay'].apply(lambda x: 1 if x > 0 else 0)
