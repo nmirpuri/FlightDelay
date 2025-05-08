@@ -8,7 +8,7 @@ st.set_page_config(page_title="Flight Delay Predictor", page_icon="✈️")
 
 st.title("Flight Delay Predictor ✈️")
 st.markdown("Enter flight details to estimate the probability of a delay:")
-
+st.write(Flight_data_part_1.csv)
 @st.cache_data
 def load_data():
     try:
