@@ -56,7 +56,7 @@ def load_and_preprocess_data():
 @st.cache_resource
 def train_model(df):
     st.write("Columns in dataset:", df.columns.tolist())
-    X = df[['Airline', 'Month', 'Origin', 'Destination']]
+    X = df[['AIRLINE', 'Month', 'ORIGIN', 'DEST']]
     y = df['Delayed']
 
     X_train, _, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=42)
