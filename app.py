@@ -32,7 +32,7 @@ def load_and_preprocess_data():
         print("Columns:", df.columns.tolist())
 
         # Confirm required columns exist
-        required_cols = ['Airline', 'Month', 'Origin', 'Destination', 'Delayed']
+        required_cols = ['AIRLINE', 'Month', 'ORIGIN', 'DEST', 'Delayed']
         for col in required_cols:
             if col not in df.columns:
                 print(f"❌ Column '{col}' not found!")
