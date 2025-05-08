@@ -55,7 +55,6 @@ def load_and_preprocess_data():
 # === Train Model ===
 @st.cache_resource
 def train_model(df):
-    st.write("Columns in dataset:", df.columns.tolist())
     X = df[['AIRLINE', 'Month', 'ORIGIN', 'DEST']]
     y = df['Delayed']
 
