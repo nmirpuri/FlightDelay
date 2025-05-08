@@ -1,110 +1,82 @@
-import pandas as pd
 import streamlit as st
-from sklearn.model_selection import train_test_split
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-import pickle
-import os
-import gdown
-import requests
-from io import StringIO
+from sklearn.metrics import classification_report
 
+st.set_page_config(page_title="Flight Delay Predictor", page_icon="✈️")
 
-def load_and_preprocess_data():
-    try:
-        # Your public Google Drive file ID
-        file_id = "1LpVqLHQVmIlAnSqeEcFSK6R1v5P5_WEW"
-        url = f"https://drive.google.com/uc?export=download&id={file_id}"
+st.title("Flight Delay Predictor ✈️")
+st.markdown("Enter flight details to estimate the probability of a delay:")
 
-        # Fetch the file content
-        response = requests.get(url)
-        
-        if response.status_code == 200:
-            data = StringIO(response.text)
-            df = pd.read_csv(data)
+@st.cache_data
+def load_data():
+    parts = []
+    for i in range(1, 7):
+        try:
+            part = pd.read_csv(f"Flight_data_part_{i}.csv")
+            parts.append(part)
+        except Exception as e:
+            st.error(f"Failed to load Flight_data_part_{i}.csv: {e}")
+            return None
+    df = pd.concat(parts, ignore_index=True)
+    return df
 
-            print("✅ CSV Loaded:", df.shape)
-            print("✅ Columns:", df.columns.tolist())
+@st.cache_data
+def preprocess_data(df):
+    encoders = {}
+    for col in ['Month', 'ORIGIN', 'DEST', 'AIRLINE']:
+        le = LabelEncoder()
+        df[col] = le.fit_transform(df[col].astype(str))
+        encoders[col] = le
+    return df, encoders
 
-            # Basic check for required columns
-            required_cols = {'Month', 'ORIGIN', 'DEST', 'AIRLINE', 'Delayed'}
-            if not required_cols.issubset(df.columns):
-                raise ValueError(f"Missing required columns: {required_cols - set(df.columns)}")
-
-            # Encode categorical columns
-            encoders = {}
-            for col in ['AIRLINE', 'Month', 'ORIGIN', 'DEST']:
-                le = LabelEncoder()
-                df[col] = le.fit_transform(df[col])
-                encoders[col] = le
-
-            return df, encoders
-        else:
-            print("❌ Failed to fetch file. Status code:", response.status_code)
-            return None, None
-
-    except Exception as e:
-        print("❌ ERROR in load_and_preprocess_data():", e)
-        return None, None
-
-df, encoders = load_and_preprocess_data()
-
-if df is not None:
-    st.success("✅ Data loaded successfully!")
-    st.write(df.head())
-else:
-    st.error("❌ Failed to load data.")
-
-# === Train Model ===
 @st.cache_resource
 def train_model(df):
-    le_airline = LabelEncoder()
-    le_origin = LabelEncoder()
-    le_dest = LabelEncoder()
-
-    df['AIRLINE'] = le_airline.fit_transform(df['AIRLINE'])
-    df['ORIGIN'] = le_origin.fit_transform(df['ORIGIN'])
-    df['DEST'] = le_dest.fit_transform(df['DEST'])
-    X = df[['AIRLINE', 'Month', 'ORIGIN', 'DEST']]
+    X = df[['Month', 'ORIGIN', 'DEST', 'AIRLINE']]
     y = df['Delayed']
-
-    X_train, _, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X, y)
+    model.fit(X_train, y_train)
 
-    encoders = {
-        'AIRLINE': le_airline,
-        'ORIGIN': le_origin,
-        'DEST': le_dest
-    }
+    return model
 
-    return model, encoders
+# Load and train
+df = load_data()
+if df is not None:
+    st.success("✅ Data loaded and combined successfully.")
+    df, encoders = preprocess_data(df)
+    model = train_model(df)
 
+    # User input form
+    st.subheader("🔍 Predict Delay")
+    with st.form("flight_form"):
+        airline = st.selectbox("Airline", df['AIRLINE'].unique())
+        month = st.selectbox("Month", df['Month'].unique())
+        origin = st.selectbox("Origin Airport", df['ORIGIN'].unique())
+        dest = st.selectbox("Destination Airport", df['DEST'].unique())
+        submit = st.form_submit_button("Predict Delay")
 
-# === App Interface ===
-st.title("Flight Delay Predictor ✈️")
-st.write("Enter flight details to estimate the probability of a delay:")
+    if submit:
+        # Encode user input
+        try:
+            input_df = pd.DataFrame([{
+                'Month': month,
+                'ORIGIN': origin,
+                'DEST': dest,
+                'AIRLINE': airline
+            }])
+            for col in ['Month', 'ORIGIN', 'DEST', 'AIRLINE']:
+                input_df[col] = encoders[col].transform(input_df[col].astype(str))
 
-df, encoders = load_and_preprocess_data()
-model = train_model(df)
+            prediction = model.predict(input_df)[0]
+            prob = model.predict_proba(input_df)[0][1]
 
-# Collect user input
-airline = st.selectbox("AIRLINE", encoders['AIRLINE'].classes_)
-month = st.selectbox("Month", encoders['Month'].classes_)
-origin = st.selectbox("ORIGIN Airport", encoders['ORIGIN'].classes_)
-destination = st.selectbox("DEST Airport", encoders['DEST'].classes_)
-
-# Encode inputs
-input_data = {
-    'AIRLINE': encoders['AIRLINE'].transform([airline])[0],
-    'Month': encoders['Month'].transform([month])[0],
-    'ORIGIN': encoders['ORIGIN'].transform([origin])[0],
-    'DEST': encoders['DEST'].transform([destination])[0]
-}
-
-# Predict
-if st.button("Predict Delay"):
-    prediction = model.predict_proba([[input_data['AIRLINE'], input_data['Month'],
-                                        input_data['ORIGIN'], input_data['DEST']]])[0][1]
-    st.success(f"Estimated Probability of Delay: **{prediction * 100:.2f}%**")
+            st.write(f"**Prediction:** {'🟥 Delayed' if prediction == 1 else '🟩 On Time'}")
+            st.write(f"**Delay Probability:** {prob:.2%}")
+        except Exception as e:
+            st.error(f"Prediction failed: {e}")
+else:
+    st.error("❌ Failed to load data.")
