@@ -8,16 +8,17 @@ st.set_page_config(page_title="Flight Delay Predictor", page_icon="✈️")
 
 st.title("Flight Delay Predictor ✈️")
 st.markdown("Enter flight details to estimate the probability of a delay:")
-st.write(length(Flight_data_part_1.csv))
+
 @st.cache_data
 def load_data():
     try:
-        # Adjust the path pattern as needed (e.g., if in subfolder use "data/flight_data_*.csv")
-        
-        full_df = pd.concat(Flight_data_part_1.csv, Flight_data_part_2.csv, Flight_data_part_3.csv, Flight_data_part_4.csv, Flight_data_part_5.csv, Flight_data_part_6.csv)
+        # Adjust the path pattern as needed (e.g., if in subfolder use "data/Flight_data_*.csv")
+        file_paths = sorted(glob.glob("Flight_data_*.csv"))
+        df_list = [pd.read_csv(fp) for fp in file_paths]
+        full_df = pd.concat(df_list, ignore_index=True)
         return full_df
     except Exception as e:
-        st.error(f"❌ Failed to load data DUDE: {e}")
+        st.error(f"❌ Failed to load data: {e}")
         return pd.DataFrame()
 
 @st.cache_data
