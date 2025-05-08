@@ -51,7 +51,10 @@ def load_and_preprocess_data():
         encoders[col] = le
 
     return df, encoders
-
+st.write("Data preview:")
+st.write(df.head())
+st.write("Column names exactly as read:")
+st.write([repr(col) for col in df.columns])
 # === Train Model ===
 @st.cache_resource
 def train_model(df):
