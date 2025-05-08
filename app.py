@@ -40,7 +40,7 @@ def load_and_preprocess_data():
 
         # Encode categorical columns
         encoders = {}
-        for col in ['Airline', 'Month', 'Origin', 'Destination']:
+        for col in ['AIRLINE', 'Month', 'ORIGIN', 'DEST']:
             le = LabelEncoder()
             df[col] = le.fit_transform(df[col])
             encoders[col] = le
@@ -72,21 +72,21 @@ df, encoders = load_and_preprocess_data()
 model = train_model(df)
 
 # Collect user input
-airline = st.selectbox("Airline", encoders['Airline'].classes_)
+airline = st.selectbox("AIRLINE", encoders['AIRLINE'].classes_)
 month = st.selectbox("Month", encoders['Month'].classes_)
-origin = st.selectbox("Origin Airport", encoders['Origin'].classes_)
-destination = st.selectbox("Destination Airport", encoders['Destination'].classes_)
+origin = st.selectbox("ORIGIN Airport", encoders['ORIGIN'].classes_)
+destination = st.selectbox("DEST Airport", encoders['DEST'].classes_)
 
 # Encode inputs
 input_data = {
-    'Airline': encoders['Airline'].transform([airline])[0],
+    'AIRLINE': encoders['AIRLINE'].transform([airline])[0],
     'Month': encoders['Month'].transform([month])[0],
-    'Origin': encoders['Origin'].transform([origin])[0],
-    'Destination': encoders['Destination'].transform([destination])[0]
+    'ORIGIN': encoders['ORIGIN'].transform([origin])[0],
+    'DEST': encoders['DEST'].transform([destination])[0]
 }
 
 # Predict
 if st.button("Predict Delay"):
-    prediction = model.predict_proba([[input_data['Airline'], input_data['Month'],
-                                        input_data['Origin'], input_data['Destination']]])[0][1]
+    prediction = model.predict_proba([[input_data['AIRLINE'], input_data['Month'],
+                                        input_data['ORIGIN'], input_data['DEST']]])[0][1]
     st.success(f"Estimated Probability of Delay: **{prediction * 100:.2f}%**")
