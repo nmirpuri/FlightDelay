@@ -50,10 +50,7 @@ def load_and_preprocess_data():
     except Exception as e:
         print("❌ ERROR in load_and_preprocess_data():", e)
         return None, None
-st.write("Data preview:")
-st.write(df.head())
-st.write("Column names exactly as read:")
-st.write([repr(col) for col in df.columns])
+
 # === Train Model ===
 @st.cache_resource
 def train_model(df):
