@@ -29,7 +29,7 @@ def load_and_preprocess_data():
 
         # DEBUG: Show shape and columns
         st.write("✅ CSV Loaded:", df.shape)
-        st.write("Columns:", df.columns.tolist())
+        
 
         # Confirm required columns exist
         required_cols = ['AIRLINE', 'Month', 'ORIGIN', 'DEST', 'Delayed']
