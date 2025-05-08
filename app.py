@@ -15,44 +15,19 @@ def load_and_preprocess_data():
         file_id = "1LpVqLHQVmIlAnSqeEcFSK6R1v5P5_WEW"
         url = f"https://drive.google.com/uc?id={file_id}"
 
-        # Download the CSV file
-        response = requests.get(url)
-        if response.status_code != 200:
-            st.write("❌ Failed to download file, status code: {response.status_code}")
-            return None, None
+        output = "Flight_data.csv"
+        gdown.download(url, output, quiet=False)
 
-        # Load into DataFrame
-        data = StringIO(response.text)
-        df = pd.read_csv(data)
+        df = pd.read_csv(output)
 
-        # Clean column names
-        df.columns = df.columns.str.strip()
+        print("✅ CSV Loaded: ", df.shape)
+        print("Columns: ", df.columns.tolist())
 
-        # DEBUG: Show shape and columns
-        st.write("✅ CSV Loaded:", df.shape)
-        st.write("✅ Data loaded successfully!")
-        st.write(df.head())
-        st.write("Columns:", df.columns.tolist())
-
-        # Confirm required columns exist
-        required_cols = ['AIRLINE', 'Month', 'ORIGIN', 'DEST', 'Delayed']
-        for col in required_cols:
-            if col not in df.columns:
-                print(f"❌ Column '{col}' not found!")
-                return None, None
-
-        # Encode categorical columns
-        encoders = {}
-        for col in ['AIRLINE', 'Month', 'ORIGIN', 'DEST']:
-            le = LabelEncoder()
-            df[col] = le.fit_transform(df[col])
-            encoders[col] = le
-
-        return df, encoders
+        return df
 
     except Exception as e:
-        print("❌ ERROR in load_and_preprocess_data():", e)
-        return None, None
+        print("❌ Error loading CSV:", e)
+        return None
 
 # === Train Model ===
 @st.cache_resource
