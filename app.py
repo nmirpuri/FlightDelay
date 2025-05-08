@@ -14,43 +14,42 @@ def load_and_preprocess_data():
         file_id = "1LpVqLHQVmIlAnSqeEcFSK6R1v5P5_WEW"
         url = f"https://drive.google.com/uc?id={file_id}"
 
-        # Use requests to download the file
+        # Download the CSV file
         response = requests.get(url)
-        
-        # Check for successful download
-        if response.status_code == 200:
-            # Convert content to StringIO, which is like a file object
-            data = StringIO(response.text)
-
-            # Read into pandas dataframe
-            df = pd.read_csv(data)
-
-            # DEBUG: Show shape and columns
-            print("CSV Loaded: ", df.shape)
-            print("Columns: ", df.columns)
-            
-            # Your preprocessing steps here...
-            
-            return df, {}
-        else:
-            print(f"Failed to download file, status code: {response.status_code}")
+        if response.status_code != 200:
+            print(f"❌ Failed to download file, status code: {response.status_code}")
             return None, None
-        
+
+        # Load into DataFrame
+        data = StringIO(response.text)
+        df = pd.read_csv(data)
+
+        # Clean column names
+        df.columns = df.columns.str.strip()
+
+        # DEBUG: Show shape and columns
+        print("✅ CSV Loaded:", df.shape)
+        print("Columns:", df.columns.tolist())
+
+        # Confirm required columns exist
+        required_cols = ['Airline', 'Month', 'Origin', 'Destination', 'Delayed']
+        for col in required_cols:
+            if col not in df.columns:
+                print(f"❌ Column '{col}' not found!")
+                return None, None
+
+        # Encode categorical columns
+        encoders = {}
+        for col in ['Airline', 'Month', 'Origin', 'Destination']:
+            le = LabelEncoder()
+            df[col] = le.fit_transform(df[col])
+            encoders[col] = le
+
+        return df, encoders
+
     except Exception as e:
         print("❌ ERROR in load_and_preprocess_data():", e)
         return None, None
-
-    # Create binary target column
-    df['Delayed'] = df['Delay'].apply(lambda x: 1 if x > 0 else 0)
-
-    # Encode categorical columns
-    encoders = {}
-    for col in ['Airline', 'Month', 'Origin', 'Destination']:
-        le = LabelEncoder()
-        df[col] = le.fit_transform(df[col])
-        encoders[col] = le
-
-    return df, encoders
 st.write("Data preview:")
 st.write(df.head())
 st.write("Column names exactly as read:")
