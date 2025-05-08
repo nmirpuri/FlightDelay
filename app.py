@@ -9,6 +9,7 @@ import gdown
 import requests
 from io import StringIO
 
+
 def load_and_preprocess_data():
     try:
         file_id = "1LpVqLHQVmIlAnSqeEcFSK6R1v5P5_WEW"
@@ -54,15 +55,29 @@ def load_and_preprocess_data():
 # === Train Model ===
 @st.cache_resource
 def train_model(df):
+    le_airline = LabelEncoder()
+    le_origin = LabelEncoder()
+    le_dest = LabelEncoder()
+
+    df['AIRLINE'] = le_airline.fit_transform(df['AIRLINE'])
+    df['ORIGIN'] = le_origin.fit_transform(df['ORIGIN'])
+    df['DEST'] = le_dest.fit_transform(df['DEST'])
     X = df[['AIRLINE', 'Month', 'ORIGIN', 'DEST']]
     y = df['Delayed']
 
     X_train, _, y_train, _ = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    model = RandomForestClassifier()
-    model.fit(X_train, y_train)
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X, y)
 
-    return model
+    encoders = {
+        'AIRLINE': le_airline,
+        'ORIGIN': le_origin,
+        'DEST': le_dest
+    }
+
+    return model, encoders
+
 
 # === App Interface ===
 st.title("Flight Delay Predictor ✈️")
