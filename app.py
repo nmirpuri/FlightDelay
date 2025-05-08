@@ -13,7 +13,7 @@ st.markdown("Enter flight details to estimate the probability of a delay:")
 def load_data():
     try:
         # Adjust the path pattern as needed (e.g., if in subfolder use "data/Flight_data_*.csv")
-        file_paths = sorted(glob.glob("Flight_data__part_*.csv"))
+        file_paths = sorted(glob.glob("Flight_data_part_*.csv", recursive=False))
         df_list = [pd.read_csv(fp) for fp in file_paths]
         full_df = pd.concat(df_list, ignore_index=True)
         return full_df
