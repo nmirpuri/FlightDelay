@@ -17,7 +17,7 @@ def load_and_preprocess_data():
         # Download the CSV file
         response = requests.get(url)
         if response.status_code != 200:
-            print(f"❌ Failed to download file, status code: {response.status_code}")
+            st.write("❌ Failed to download file, status code: {response.status_code}")
             return None, None
 
         # Load into DataFrame
@@ -28,8 +28,8 @@ def load_and_preprocess_data():
         df.columns = df.columns.str.strip()
 
         # DEBUG: Show shape and columns
-        print("✅ CSV Loaded:", df.shape)
-        print("Columns:", df.columns.tolist())
+        st.write("✅ CSV Loaded:", df.shape)
+        st.write("Columns:", df.columns.tolist())
 
         # Confirm required columns exist
         required_cols = ['AIRLINE', 'Month', 'ORIGIN', 'DEST', 'Delayed']
