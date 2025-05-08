@@ -12,25 +12,48 @@ from io import StringIO
 
 def load_and_preprocess_data():
     try:
+        # Your public Google Drive file ID
         file_id = "1LpVqLHQVmIlAnSqeEcFSK6R1v5P5_WEW"
         url = f"https://drive.google.com/uc?export=download&id={file_id}"
-        output = "Flight_data.csv"
 
-        # Download from Google Drive using gdown
-        gdown.download(url, output, quiet=False)
+        # Fetch the file content
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            data = StringIO(response.text)
+            df = pd.read_csv(data)
 
-        # Load the actual CSV
-        df = pd.read_csv(output)
+            print("✅ CSV Loaded:", df.shape)
+            print("✅ Columns:", df.columns.tolist())
 
-        return df
+            # Basic check for required columns
+            required_cols = {'Month', 'ORIGIN', 'DEST', 'AIRLINE', 'Delayed'}
+            if not required_cols.issubset(df.columns):
+                raise ValueError(f"Missing required columns: {required_cols - set(df.columns)}")
+
+            # Encode categorical columns
+            encoders = {}
+            for col in ['AIRLINE', 'Month', 'ORIGIN', 'DEST']:
+                le = LabelEncoder()
+                df[col] = le.fit_transform(df[col])
+                encoders[col] = le
+
+            return df, encoders
+        else:
+            print("❌ Failed to fetch file. Status code:", response.status_code)
+            return None, None
+
     except Exception as e:
-        print("❌ Error loading data:", e)
-        return None
+        print("❌ ERROR in load_and_preprocess_data():", e)
+        return None, None
 
-df = load_and_preprocess_data()
-if df is None:
-    st.error("Failed to load dataset.")
-    st.stop()
+df, encoders = load_and_preprocess_data()
+
+if df is not None:
+    st.success("✅ Data loaded successfully!")
+    st.write(df.head())
+else:
+    st.error("❌ Failed to load data.")
 
 # === Train Model ===
 @st.cache_resource
