@@ -35,13 +35,4 @@ with st.form("flight_form"):
     dest_label = st.selectbox("Destination Airport", encoders['DEST'].classes_)
     submit = st.form_submit_button("Predict Delay")
 
-if submit:
-    try:
-        input_df = pd.DataFrame([{
-            'Month': encoders['Month'].transform([month_label])[0],
-            'ORIGIN': encoders['ORIGIN'].transform([origin_label])[0],
-            'DEST': encoders['DEST'].transform([dest_label])[0],
-            'AIRLINE': encoders['AIRLINE'].transform([airline_label])[0]
-        }])
-
-     
+   
