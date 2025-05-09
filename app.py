@@ -8,7 +8,7 @@ st.set_page_config(page_title="Flight Delay Predictor", page_icon="✈️")
 st.title("Flight Delay Predictor ✈️")
 st.markdown("Enter flight details to estimate the probability of a delay:")
 
-# --- Load Data ---
+# Load and merge all 6 parts
 files = [
     "Flight_data_part_1.csv",
     "Flight_data_part_2.csv",
@@ -20,68 +20,27 @@ files = [
 
 # Read and concatenate
 df = pd.concat([pd.read_csv(file) for file in files], ignore_index=True)
+
+# Show data loaded
 st.write(f"✅ Loaded {len(df)} rows.")
+st.write(df.head())
 
-# --- Preprocessing ---
-# Keep only relevant columns and drop rows with any missing values
-required_columns = ['Month', 'AIRLINE', 'ORIGIN', 'DEST', 'Delayed']
-df = df[required_columns].dropna()
+# --- UI COMPONENTS ---
 
-# Ensure correct types
-df['Month'] = pd.to_numeric(df['Month'], errors='coerce')
-df['Delayed'] = pd.to_numeric(df['Delayed'], errors='coerce')
-df.dropna(inplace=True)
-
-# Label encode
-le_airline = LabelEncoder()
-le_origin = LabelEncoder()
-le_dest = LabelEncoder()
-
-df['AIRLINE_ENC'] = le_airline.fit_transform(df['AIRLINE'])
-df['ORIGIN_ENC'] = le_origin.fit_transform(df['ORIGIN'])
-df['DEST_ENC'] = le_dest.fit_transform(df['DEST'])
-
-# Final feature matrix
-X = df[['Month', 'AIRLINE_ENC', 'ORIGIN_ENC', 'DEST_ENC']]
-y = df['Delayed']
-
-# Final check for numeric dtype and alignment
-X = X.apply(pd.to_numeric)
-y = y.astype(int)
-
-# --- Train model ---
-model = RandomForestClassifier(n_estimators=100, random_state=42)
-model.fit(X, y)
-
-# --- UI Inputs ---
-month_options = sorted(df['Month'].unique())
-airline_options = sorted(df['AIRLINE'].unique())
-
+# Dropdown for Month (sorted)
+month_options = sorted(df['Month'].dropna().unique())
 selected_month = st.selectbox("Select Month", month_options)
+
+# Dropdown for Airline (sorted)
+airline_options = sorted(df['AIRLINE'].dropna().unique())
 selected_airline = st.selectbox("Select Airline", airline_options)
 
+# Text input for Origin
 origin_input = st.text_input("Enter Origin Airport Code (e.g., ATL, ORD)").upper()
-destination_input = st.text_input("Enter Destination Airport Code (e.g., LAX, JFK)").upper()
-
-valid_origin = origin_input in df['ORIGIN'].unique()
-valid_destination = destination_input in df['DEST'].unique()
-
-if origin_input and not valid_origin:
+if origin_input and origin_input not in df['ORIGIN'].unique():
     st.error("❌ Origin not found in dataset.")
-if destination_input and not valid_destination:
+
+# Text input for Destination
+destination_input = st.text_input("Enter Destination Airport Code (e.g., LAX, JFK)").upper()
+if destination_input and destination_input not in df['DEST'].unique():
     st.error("❌ Destination not found in dataset.")
-
-# --- Prediction ---
-if st.button("Predict Delay Probability") and valid_origin and valid_destination:
-    try:
-        input_data = pd.DataFrame([{
-            'Month': selected_month,
-            'AIRLINE_ENC': le_airline.transform([selected_airline])[0],
-            'ORIGIN_ENC': le_origin.transform([origin_input])[0],
-            'DEST_ENC': le_dest.transform([destination_input])[0]
-        }])
-
-        probability = model.predict_proba(input_data)[0][1] * 100
-        st.success(f"✈️ Estimated Probability of Delay: **{probability:.2f}%**")
-    except Exception as e:
-        st.error(f"🚨 Prediction error: {e}")
