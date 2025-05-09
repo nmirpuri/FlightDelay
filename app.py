@@ -9,30 +9,25 @@ st.set_page_config(page_title="Flight Delay Predictor", page_icon="✈️")
 st.title("Flight Delay Predictor ✈️")
 st.markdown("Enter flight details to estimate the probability of a delay:")
 
-@st.cache_data
-def load_data():
-    try:
-        # Adjust the path pattern as needed (e.g., if in subfolder use "data/Flight_data_*.csv")
-        file_paths = sorted(glob.glob("Flight_data_part_*.csv", recursive=False))
-        df_list = [pd.read_csv(fp) for fp in file_paths]
-        full_df = pd.concat(df_list, ignore_index=True)
-        return full_df
-    except Exception as e:
-        st.error(f"❌ Failed to load data: {e}")
-        return pd.DataFrame()
+files = [
+    "Flight_data_part_1.csv",
+    "Flight_data_part_2.csv",
+    "Flight_data_part_3.csv",
+    "Flight_data_part_4.csv",
+    "Flight_data_part_5.csv",
+    "Flight_data_part_6.csv"
+]
 
-@st.cache_data
-def preprocess_data(df):
-    encoders = {}
-    for col in ['Month', 'ORIGIN', 'DEST', 'AIRLINE']:
-        le = LabelEncoder()
-        df[col] = le.fit_transform(df[col].astype(str))
-        encoders[col] = le
-    return df, encoders
+# Read and concatenate
+df = pd.concat([pd.read_csv(file) for file in files], ignore_index=True)
+
+# Check result
+print(f"✅ Loaded {len(df)} rows.")
+print(df.head())
 
 @st.cache_resource
 def train_model():
-    df = load_data()
+    
     if df.empty:
         return None, None
 
