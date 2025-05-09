@@ -27,21 +27,21 @@ print(df.head())
 
 
 
-    st.subheader("🔍 Predict Delay")
-    with st.form("flight_form"):
-        airline_label = st.selectbox("Airline", encoders['AIRLINE'].classes_)
-        month_label = st.selectbox("Month", encoders['Month'].classes_)
-        origin_label = st.selectbox("Origin Airport", encoders['ORIGIN'].classes_)
-        dest_label = st.selectbox("Destination Airport", encoders['DEST'].classes_)
-        submit = st.form_submit_button("Predict Delay")
+st.subheader("🔍 Predict Delay")
+with st.form("flight_form"):
+    airline_label = st.selectbox("Airline", encoders['AIRLINE'].classes_)
+    month_label = st.selectbox("Month", encoders['Month'].classes_)
+    origin_label = st.selectbox("Origin Airport", encoders['ORIGIN'].classes_)
+    dest_label = st.selectbox("Destination Airport", encoders['DEST'].classes_)
+    submit = st.form_submit_button("Predict Delay")
 
-    if submit:
-        try:
-            input_df = pd.DataFrame([{
-                'Month': encoders['Month'].transform([month_label])[0],
-                'ORIGIN': encoders['ORIGIN'].transform([origin_label])[0],
-                'DEST': encoders['DEST'].transform([dest_label])[0],
-                'AIRLINE': encoders['AIRLINE'].transform([airline_label])[0]
-            }])
+if submit:
+    try:
+        input_df = pd.DataFrame([{
+            'Month': encoders['Month'].transform([month_label])[0],
+            'ORIGIN': encoders['ORIGIN'].transform([origin_label])[0],
+            'DEST': encoders['DEST'].transform([dest_label])[0],
+            'AIRLINE': encoders['AIRLINE'].transform([airline_label])[0]
+        }])
 
      
