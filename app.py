@@ -1,46 +1,38 @@
 import streamlit as st
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
-from sklearn.ensemble import RandomForestClassifier
+import joblib
 
+# Load model and encoders
+model = joblib.load("delay_model.pkl")
+le_airline = joblib.load("le_airline.pkl")
+le_origin = joblib.load("le_origin.pkl")
+le_dest = joblib.load("le_dest.pkl")
+
+# UI
 st.set_page_config(page_title="Flight Delay Predictor", page_icon="✈️")
-
 st.title("Flight Delay Predictor ✈️")
 st.markdown("Enter flight details to estimate the probability of a delay:")
 
-# Load and merge all 6 parts
-files = [
-    "Flight_data_part_1.csv",
-    "Flight_data_part_2.csv",
-    "Flight_data_part_3.csv",
-    "Flight_data_part_4.csv",
-    "Flight_data_part_5.csv",
-    "Flight_data_part_6.csv"
-]
+# For dropdown options (you can also hardcode these)
+sample_df = pd.read_csv("Flight_data_part_1.csv")  # Any part is fine
+month_options = sorted(sample_df['Month'].dropna().unique())
+airline_options = sorted(sample_df['AIRLINE'].dropna().unique())
 
-# Read and concatenate
-df = pd.concat([pd.read_csv(file) for file in files], ignore_index=True)
-
-# Show data loaded
-st.write(f"✅ Loaded {len(df)} rows.")
-st.write(df.head())
-
-# --- UI COMPONENTS ---
-
-# Dropdown for Month (sorted)
-month_options = sorted(df['Month'].dropna().unique())
 selected_month = st.selectbox("Select Month", month_options)
-
-# Dropdown for Airline (sorted)
-airline_options = sorted(df['AIRLINE'].dropna().unique())
 selected_airline = st.selectbox("Select Airline", airline_options)
-
-# Text input for Origin
 origin_input = st.text_input("Enter Origin Airport Code (e.g., ATL, ORD)").upper()
-if origin_input and origin_input not in df['ORIGIN'].unique():
-    st.error("❌ Origin not found in dataset.")
-
-# Text input for Destination
 destination_input = st.text_input("Enter Destination Airport Code (e.g., LAX, JFK)").upper()
-if destination_input and destination_input not in df['DEST'].unique():
-    st.error("❌ Destination not found in dataset.")
+
+# Validate input
+if origin_input and destination_input:
+    try:
+        input_data = pd.DataFrame([{
+            'Month': selected_month,
+            'AIRLINE_ENC': le_airline.transform([selected_airline])[0],
+            'ORIGIN_ENC': le_origin.transform([origin_input])[0],
+            'DEST_ENC': le_dest.transform([destination_input])[0]
+        }])
+        delay_proba = model.predict_proba(input_data)[0][1]
+        st.success(f"📊 Estimated Delay Probability: **{delay_proba * 100:.2f}%**")
+    except ValueError as e:
+        st.error("❌ One or more inputs not recognized by the model.")
