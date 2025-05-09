@@ -21,11 +21,8 @@ df = pd.concat([pd.read_csv(file) for file in files], ignore_index=True)
 st.write(f"✅ Loaded {len(df)} rows.")
 
 # --- Basic Preprocessing ---
-df = df[['MONTH', 'AIRLINE', 'ORIGIN', 'DEST', 'DEP_DELAY', 'ARR_DELAY']]
 df.dropna(inplace=True)
-
-# Define delay as arrival delay > 15 mins
-df['DELAYED'] = (df['ARR_DELAY'] > 15).astype(int)
+df = df[['Month', 'AIRLINE', 'ORIGIN', 'DEST', 'Delayed']]
 
 # Label encode categorical variables
 le_airline = LabelEncoder()
@@ -36,18 +33,18 @@ df['AIRLINE_ENC'] = le_airline.fit_transform(df['AIRLINE'])
 df['ORIGIN_ENC'] = le_origin.fit_transform(df['ORIGIN'])
 df['DEST_ENC'] = le_dest.fit_transform(df['DEST'])
 
-X = df[['MONTH', 'AIRLINE_ENC', 'ORIGIN_ENC', 'DEST_ENC']]
-y = df['DELAYED']
+X = df[['Month', 'AIRLINE_ENC', 'ORIGIN_ENC', 'DEST_ENC']]
+y = df['Delayed']
 
 # Train model
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X, y)
 
 # --- UI Components ---
-month_options = sorted(df['MONTH'].dropna().unique())
+month_options = sorted(df['Month'].unique())
 selected_month = st.selectbox("Select Month", month_options)
 
-airline_options = sorted(df['AIRLINE'].dropna().unique())
+airline_options = sorted(df['AIRLINE'].unique())
 selected_airline = st.selectbox("Select Airline", airline_options)
 
 origin_input = st.text_input("Enter Origin Airport Code (e.g., ATL, ORD)").upper()
@@ -65,7 +62,7 @@ if destination_input and not valid_destination:
 if st.button("Predict Delay Probability") and valid_origin and valid_destination:
     try:
         input_data = pd.DataFrame([{
-            'MONTH': selected_month,
+            'Month': selected_month,
             'AIRLINE_ENC': le_airline.transform([selected_airline])[0],
             'ORIGIN_ENC': le_origin.transform([origin_input])[0],
             'DEST_ENC': le_dest.transform([destination_input])[0]
