@@ -1,38 +1,59 @@
 import streamlit as st
 import pandas as pd
-import joblib
+from sklearn.preprocessing import LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
 
-# Load model and encoders
-model = joblib.load("delay_model.pkl")
-le_airline = joblib.load("le_airline.pkl")
-le_origin = joblib.load("le_origin.pkl")
-le_dest = joblib.load("le_dest.pkl")
-
-# UI
+# --- Streamlit UI setup ---
 st.set_page_config(page_title="Flight Delay Predictor", page_icon="✈️")
 st.title("Flight Delay Predictor ✈️")
 st.markdown("Enter flight details to estimate the probability of a delay:")
 
-# For dropdown options (you can also hardcode these)
-sample_df = pd.read_csv("Flight_data_part_1.csv")  # Any part is fine
-month_options = sorted(sample_df['Month'].dropna().unique())
-airline_options = sorted(sample_df['AIRLINE'].dropna().unique())
+# --- Load data ---
+files = [f"Flight_data_part_{i}.csv" for i in range(1, 7)]
+df = pd.concat([pd.read_csv(f) for f in files], ignore_index=True)
+st.write(f"✅ Loaded {len(df)} rows.")
 
-selected_month = st.selectbox("Select Month", month_options)
-selected_airline = st.selectbox("Select Airline", airline_options)
+# --- Encode categorical columns ---
+encoders = {}
+for col in ['Month', 'AIRLINE', 'ORIGIN', 'DEST']:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
+    encoders[col] = le
+
+# --- Train model ---
+X = df[['Month', 'AIRLINE', 'ORIGIN', 'DEST']]
+y = df['Delayed']
+model = RandomForestClassifier(n_estimators=50, random_state=42)
+model.fit(X, y)
+
+# --- UI Inputs ---
+# Dropdowns
+month_label = st.selectbox("Select Month", sorted(encoders['Month'].classes_))
+airline_label = st.selectbox("Select Airline", sorted(encoders['AIRLINE'].classes_))
+
+# Text inputs
 origin_input = st.text_input("Enter Origin Airport Code (e.g., ATL, ORD)").upper()
-destination_input = st.text_input("Enter Destination Airport Code (e.g., LAX, JFK)").upper()
+dest_input = st.text_input("Enter Destination Airport Code (e.g., LAX, JFK)").upper()
 
-# Validate input
-if origin_input and destination_input:
-    try:
+# Validate origin/destination
+origin_valid = origin_input in encoders['ORIGIN'].classes_
+dest_valid = dest_input in encoders['DEST'].classes_
+
+if origin_input and not origin_valid:
+    st.error("❌ Origin not found in dataset.")
+if dest_input and not dest_valid:
+    st.error("❌ Destination not found in dataset.")
+
+# --- Prediction ---
+if st.button("Predict Delay Probability"):
+    if origin_valid and dest_valid:
         input_data = pd.DataFrame([{
-            'Month': selected_month,
-            'AIRLINE_ENC': le_airline.transform([selected_airline])[0],
-            'ORIGIN_ENC': le_origin.transform([origin_input])[0],
-            'DEST_ENC': le_dest.transform([destination_input])[0]
+            'Month': encoders['Month'].transform([month_label])[0],
+            'AIRLINE': encoders['AIRLINE'].transform([airline_label])[0],
+            'ORIGIN': encoders['ORIGIN'].transform([origin_input])[0],
+            'DEST': encoders['DEST'].transform([dest_input])[0],
         }])
-        delay_proba = model.predict_proba(input_data)[0][1]
-        st.success(f"📊 Estimated Delay Probability: **{delay_proba * 100:.2f}%**")
-    except ValueError as e:
-        st.error("❌ One or more inputs not recognized by the model.")
+        prob = model.predict_proba(input_data)[0][1]
+        st.success(f"🚨 Estimated Delay Probability: **{prob * 100:.2f}%**")
+    else:
+        st.warning("⚠️ Please enter valid airport codes to predict.")
