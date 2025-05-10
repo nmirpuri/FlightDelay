@@ -3,61 +3,72 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 
-# --- Streamlit UI setup ---
 st.set_page_config(page_title="Flight Delay Predictor", page_icon="✈️")
 st.title("Flight Delay Predictor ✈️")
 st.markdown("Enter flight details to estimate the probability of a delay:")
 
-# --- Load data ---
-files = [f"Flight_data_part_{i}.csv" for i in range(1, 7)]
-df = pd.concat([pd.read_csv(f) for f in files], ignore_index=True)
+# Load and sample data
+files = [
+    "Flight_data_part_1.csv",
+    "Flight_data_part_2.csv",
+    "Flight_data_part_3.csv",
+    "Flight_data_part_4.csv",
+    "Flight_data_part_5.csv",
+    "Flight_data_part_6.csv"
+]
+
+df = pd.concat([pd.read_csv(file) for file in files], ignore_index=True)
+df = df.sample(n=200_000, random_state=42).reset_index(drop=True)
+
 st.write(f"✅ Loaded {len(df)} rows.")
+st.write(df.head())
 
-df = df.dropna(subset=['Delayed'])  # Drop rows with missing target
-df = df[df['Delayed'].isin([0, 1])]  # Keep only binary outcomes (0 or 1)
-st.write(f"Training on {len(df)} rows after cleaning.")
+# Cache model training
+@st.cache_resource
+def train_model(data):
+    data = data.dropna(subset=['Delayed'])
+    data = data[data['Delayed'].isin([0, 1])]
 
-# --- Encode categorical columns ---
-encoders = {}
-for col in ['Month', 'AIRLINE', 'ORIGIN', 'DEST']:
-    le = LabelEncoder()
-    df[col] = le.fit_transform(df[col])
-    encoders[col] = le
+    for col in ['Month', 'AIRLINE', 'ORIGIN', 'DEST']:
+        le = LabelEncoder()
+        data[col] = le.fit_transform(data[col])
 
-# --- Train model ---
-X = df[['Month', 'AIRLINE', 'ORIGIN', 'DEST']]
-y = df['Delayed']
-model = RandomForestClassifier(n_estimators=50, random_state=42)
-model.fit(X, y)
+    X = data[['Month', 'AIRLINE', 'ORIGIN', 'DEST']]
+    y = data['Delayed']
 
-# --- UI Inputs ---
-# Dropdowns
-month_label = st.selectbox("Select Month", sorted(encoders['Month'].classes_))
-airline_label = st.selectbox("Select Airline", sorted(encoders['AIRLINE'].classes_))
+    model = RandomForestClassifier(n_estimators=30, max_depth=10, random_state=42)
+    model.fit(X, y)
+    return model, le
 
-# Text inputs
-origin_input = st.text_input("Enter Origin Airport Code (e.g., ATL, ORD)").upper()
-dest_input = st.text_input("Enter Destination Airport Code (e.g., LAX, JFK)").upper()
+model, le = train_model(df)
 
-# Validate origin/destination
-origin_valid = origin_input in encoders['ORIGIN'].classes_
-dest_valid = dest_input in encoders['DEST'].classes_
+# --- UI ---
 
-if origin_input and not origin_valid:
-    st.error("❌ Origin not found in dataset.")
-if dest_input and not dest_valid:
-    st.error("❌ Destination not found in dataset.")
+month_options = sorted(df['Month'].dropna().unique())
+selected_month = st.selectbox("Select Month", month_options)
 
-# --- Prediction ---
-if st.button("Predict Delay Probability"):
-    if origin_valid and dest_valid:
-        input_data = pd.DataFrame([{
-            'Month': encoders['Month'].transform([month_label])[0],
-            'AIRLINE': encoders['AIRLINE'].transform([airline_label])[0],
-            'ORIGIN': encoders['ORIGIN'].transform([origin_input])[0],
-            'DEST': encoders['DEST'].transform([dest_input])[0],
-        }])
-        prob = model.predict_proba(input_data)[0][1]
-        st.success(f"🚨 Estimated Delay Probability: **{prob * 100:.2f}%**")
+airline_options = sorted(df['AIRLINE'].dropna().unique())
+selected_airline = st.selectbox("Select Airline", airline_options)
+
+origin_input = st.text_input("Enter Origin Airport Code (e.g., ATL)").upper()
+destination_input = st.text_input("Enter Destination Airport Code (e.g., LAX)").upper()
+
+if origin_input and destination_input:
+    if origin_input not in df['ORIGIN'].unique():
+        st.error("❌ Origin not found.")
+    elif destination_input not in df['DEST'].unique():
+        st.error("❌ Destination not found.")
     else:
-        st.warning("⚠️ Please enter valid airport codes to predict.")
+        # Encode inputs
+        input_df = pd.DataFrame({
+            'Month': [selected_month],
+            'AIRLINE': [selected_airline],
+            'ORIGIN': [origin_input],
+            'DEST': [destination_input]
+        })
+
+        for col in input_df.columns:
+            input_df[col] = le.fit(df[col]).transform(input_df[col])
+
+        prob = model.predict_proba(input_df)[0][1]
+        st.success(f"✈️ Probability of delay: **{prob * 100:.2f}%**")
