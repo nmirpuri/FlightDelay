@@ -10,10 +10,17 @@ st.markdown(
     """
     <style>
     .stApp {
-        background-image: URL("https://raw.githubusercontent.com/nmirpuri/FlightDelay/main/21343-copy.jpg");
+        background-image: url("https://raw.githubusercontent.com/nmirpuri/FlightDelay/main/21343-copy.jpg");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
+        background-attachment: fixed;
+    }
+
+    .main > div {
+        background-color: rgba(255, 255, 255, 0.8);  /* Light overlay behind content */
+        padding: 2rem;
+        border-radius: 10px;
     }
     </style>
     """,
