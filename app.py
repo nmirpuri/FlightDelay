@@ -13,6 +13,10 @@ files = [f"Flight_data_part_{i}.csv" for i in range(1, 7)]
 df = pd.concat([pd.read_csv(f) for f in files], ignore_index=True)
 st.write(f"✅ Loaded {len(df)} rows.")
 
+df = df.dropna(subset=['Delayed'])  # Drop rows with missing target
+df = df[df['Delayed'].isin([0, 1])]  # Keep only binary outcomes (0 or 1)
+st.write(f"Training on {len(df)} rows after cleaning.")
+
 # --- Encode categorical columns ---
 encoders = {}
 for col in ['Month', 'AIRLINE', 'ORIGIN', 'DEST']:
