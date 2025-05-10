@@ -7,7 +7,7 @@ st.markdown(
     """
     <style>
     .stApp {
-        background-image: 21343-copy.jpg;
+        background-image: URL("https://raw.githubusercontent.com/nmirpuri/FlightDelay/refs/heads/main/21343-copy.jpg");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
