@@ -3,6 +3,9 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 
+
+
+st.set_page_config(page_title="Flight Delay Predictor", page_icon="✈️")
 st.markdown(
     """
     <style>
@@ -16,10 +19,9 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-st.set_page_config(page_title="Flight Delay Predictor", page_icon="✈️")
 st.title("Flight Delay Predictor ✈️")
 st.markdown("Enter flight details to estimate the probability of a delay:")
+
 
 # Load and sample data
 files = [
