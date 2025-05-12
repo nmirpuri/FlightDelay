@@ -68,8 +68,7 @@ files = [
 df = pd.concat([pd.read_csv(file) for file in files], ignore_index=True)
 df = df.sample(n=200_000, random_state=42).reset_index(drop=True)
 
-st.write(f"✅ Loaded {len(df)} rows.")
-st.write(df.head())
+
 
 # Cache model training
 @st.cache_resource
