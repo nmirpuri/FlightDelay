@@ -34,6 +34,13 @@ text_color_css = """
 <style>
 h1, h2, h3, h4, h5, h6, p, div {
     color: white !important;
+
+/* Widget containers (input boxes, dropdowns, etc.) */
+.stTextInput, .stSelectbox, .stButton > button {
+    background-color: rgba(255, 255, 255, 0.85) !important;
+    color: black !important;
+    border-radius: 5px;
+}
 }
 </style>
 """
