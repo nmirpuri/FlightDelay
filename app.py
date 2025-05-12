@@ -10,7 +10,7 @@ st.markdown(
     """
     <style>
     .stApp {
-        background-image: url("https://raw.githubusercontent.com/nmirpuri/FlightDelay/main/21343-copy.jpg");
+        background-image: url("https://raw.githubusercontent.com/nmirpuri/FlightDelay/refs/heads/main/Backy.avif");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -30,21 +30,7 @@ st.markdown(
 
 )
 
-text_color_css = """
-<style>
-h1, h2, h3, h4, h5, h6, p, div {
-    color: white !important;
 
-/* Widget containers (input boxes, dropdowns, etc.) */
-.stTextInput, .stSelectbox, .stButton > button {
-    background-color: rgba(255, 255, 255, 0.85) !important;
-    color: black !important;
-    border-radius: 5px;
-}
-}
-</style>
-"""
-st.markdown(text_color_css, unsafe_allow_html=True)
 
 
 corner_image_css = """
