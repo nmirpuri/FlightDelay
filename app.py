@@ -108,11 +108,9 @@ destination_input = st.text_input("Enter Destination Airport Code (e.g., LAX)").
 
 if origin_input and destination_input:
     if origin_input not in df['ORIGIN'].unique():
-        st.error("❌ Origin not found.
-                ✈Note: This app currently supports only flights between U.S. airports based on the available dataset")
+        st.error("❌ Origin not found. \n✈Note: This app currently supports only flights between U.S. airports based on the available dataset")
     elif destination_input not in df['DEST'].unique():
-        st.error("❌ Destination not found.
-                ✈Note: This app currently supports only flights between U.S. airports based on the available dataset")
+        st.error("❌ Destination not found. \n✈Note: This app currently supports only flights between U.S. airports based on the available dataset")
     else:
         # Encode inputs
         input_df = pd.DataFrame({
