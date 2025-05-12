@@ -66,7 +66,7 @@ files = [
 ]
 
 df = pd.concat([pd.read_csv(file) for file in files], ignore_index=True)
-df = df.sample(n=200_000, random_state=42).reset_index(drop=True)
+df = df.sample(n=500_000, random_state=42).reset_index(drop=True)
 
 
 
