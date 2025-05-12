@@ -92,6 +92,11 @@ model, le = train_model(df)
 # --- UI ---
 
 month_options = sorted(df['Month'].dropna().unique())
+month_order = ['January', 'February', 'March', 'April', 'May', 'June',
+               'July', 'August', 'September', 'October', 'November', 'December']
+
+# Keep only months in the dataset and preserve calendar order
+month_options = [m for m in month_order if m in df['Month'].unique()]
 selected_month = st.selectbox("Select Month", month_options)
 
 airline_options = sorted(df['AIRLINE'].dropna().unique())
