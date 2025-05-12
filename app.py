@@ -25,7 +25,39 @@ st.markdown(
     </style>
     """,
     unsafe_allow_html=True
+
+
+
 )
+
+text_color_css = """
+<style>
+h1, h2, h3, h4, h5, h6, p, div {
+    color: white !important;
+}
+</style>
+"""
+st.markdown(text_color_css, unsafe_allow_html=True)
+
+
+corner_image_css = """
+<style>
+.corner-image {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 80px;
+    z-index: 100;
+}
+</style>
+
+<img src="https://raw.githubusercontent.com/nmirpuri/FlightDelay/refs/heads/main/21343%5B1%5D.jpg" class="corner-image">
+"""
+
+st.markdown(corner_image_css, unsafe_allow_html=True)
+
+
+
 st.title("Flight Delay Predictor ✈️")
 st.markdown("Enter flight details to estimate the probability of a delay:")
 
