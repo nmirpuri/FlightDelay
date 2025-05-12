@@ -51,7 +51,7 @@ corner_image_css = """
 }
 </style>
 
-<img src="https://raw.githubusercontent.com/nmirpuri/FlightDelay/refs/heads/main/21343%5B1%5D.jpg" class="corner-image">
+<img src="https://raw.githubusercontent.com/nmirpuri/FlightDelay/refs/heads/main/6485090.png" class="corner-image">
 """
 
 st.markdown(corner_image_css, unsafe_allow_html=True)
