@@ -53,6 +53,7 @@ st.markdown(corner_image_css, unsafe_allow_html=True)
 
 st.title("Flight Delay Predictor ✈️")
 st.markdown("Enter flight details to estimate the probability of a delay:")
+st.markdown("✈Note: This app currently supports only flights between U.S. airports based on the available dataset.", unsafe_allow_html=True)
 
 
 # Load and sample data
