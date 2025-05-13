@@ -39,7 +39,7 @@ corner_image_css = """
     position: fixed;
     bottom: 0px;
     left: 0px;
-    width: 100px;
+    width: 40px;
     z-index: 100;
 }
 </style>
