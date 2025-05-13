@@ -37,8 +37,8 @@ corner_image_css = """
 <style>
 .corner-image {
     position: fixed;
-    top: 0px;
-    right: 0px;
+    top: 40px;
+    right: 40px;
     width: 80px;
     z-index: 100;
 }
