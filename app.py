@@ -51,7 +51,7 @@ st.markdown(corner_image_css, unsafe_allow_html=True)
 
 
 
-st.title("Flight Delay Predictor ✈️")
+st.title("Flight Delay Predictor")
 st.markdown("Enter flight details to estimate the probability of a delay:")
 
 
